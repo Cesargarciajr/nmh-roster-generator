@@ -14,87 +14,79 @@ This project is divided into several core apps, each focusing on a specific func
 - **Manual Override & Editing**: Allows for manual adjustments and overrides of automatically generated rosters.
 - **Notifications & Audit Trail**: Tracks all changes made to rosters and staff records, and sends notifications to staff and managers.
 
+---
 
-## Table of Contents
-- [Epic 1: Staff Roster Generation](#-epic-1-staff-roster-generation)
-- [Epic 2: Staff Management](#-epic-2-staff-management)
-- [Epic 3: Shift Management](#-epic-3-shift-management)
-- [Epic 4: Rule Engine for Allocation](#-epic-4-rule-engine-for-allocation)
-- [Epic 5: Reporting & Analytics](#-epic-5-reporting--analytics)
-- [Epic 6: Manual Override & Editing](#-epic-6-manual-override--editing)
-- [Epic 7: Notifications & Audit Trail](#-epic-7-notifications--audit-trail)
+## 🧩 Epic 1.1: Staff Registration
+🎯 **Goal:** Allow administrators to register new staff members with all required attributes.
 
-## Epics
+### Key User Stories:
+- As an admin, I want to register new staff members by entering their:
+  - Staff Name
+  - Weekend Group (1–4)
+  - Shift Period Assigned (D1, D2, D3, E, N)
+  - Gender (Male/Female)
+  - Unit Restrictions
+  - **Assigned Unit** (if the staff works only in a specific unit)
+  - Contract Type (Full-time/Part-time)
+  - Status (default to Active)
 
-### 🧩 **Epic 1: Staff Roster Generation**
-**Goal:** Automatically generate fair, efficient, and rules-compliant weekly staff rosters.
+- As a system, I must:
+  - Auto-generate a unique Staff ID
+  - Validate all required fields before saving
 
-#### Key User Stories:
-- As a scheduler, I want to automatically generate weekly rosters based on shift patterns, so I don't have to do it manually.
-- As a system, I must ensure full-time staff work 39 hours per week with one “short day” per week.
-- As a system, I must follow part-time patterns (2-day/3-day alternating weeks) without short days.
-- As a system, I must ensure that weeks run from Monday to Sunday.
-- As a system, I must ensure full-time staff get one weekend off per 4-week cycle, based on a predefined rotation group (Week 1, Week 2, etc.).
-- As a scheduler, I want to assign each full-time staff member to a fixed weekend-off group (Week 1–4) that repeats every four weeks.
-- As a system, I must determine the current week number in the 4-week cycle to ensure correct weekend-off allocation.
-- As a scheduler, I need the system to consider staff holidays, sick leave, and other leave types during roster generation.
-- As a system, I must ensure fair rotation of staff across eligible units unless marked as fixed.
-- As a system, I must restrict staff from being scheduled into units they’re not trained for.
-- As a system, I must ensure only female staff are assigned to gender-restricted areas.
+---
 
-### 🧩 **Epic 2: Staff Management**
-**Goal:** Manage all staff details, contracts, and preferences.
+## 🧩 Epic 1.2: Staff Listing & Detail View
+🎯 **Goal:** Provide a clear overview of all registered staff with summary and detail views.
 
-#### Key User Stories:
-- As an admin, I want to register staff with ID, name, gender, contract type, and training/unit restrictions.
-- As an admin, I want to assign each full-time staff member to a weekend-off rotation group (Week 1–4).
-- As an admin, I want to view and update staff work history to help inform fair allocation.
-- As an admin, I want to assign unit restrictions and mark staff as fixed to a unit or eligible for rotation.
-- As an admin, I want to book holidays and other leave types for staff.
-- As an admin, I want to enter and track specific day-off requests.
+### Key User Stories:
+- As an admin, I want to view all staff in a table/list showing:
+  - Staff ID
+  - Staff Name
+  - Status (Active/Inactive)
+  - Contract Type
+  - Gender
 
-### 🧩 **Epic 3: Shift Management**
-**Goal:** Define and manage shift structures.
+- As an admin, I want to click on a staff entry to view the full profile for more detailed information and editing access.
 
-#### Key User Stories:
-- As an admin, I want to define standard day, evening, and night shifts.
-- As a system, I must match shift lengths with contract hours (e.g., full-time = 39h/week).
-- As a system, I should ensure that no one works overlapping shifts or violates rest period rules (future-proofing).
+- As a system, I must:
+  - Display up-to-date information from the database
+  - Paginate or search/filter if the list grows large
 
-### 🧩 **Epic 4: Rule Engine for Allocation**
-**Goal:** Build a flexible rule engine to enforce hospital policies and scheduling fairness.
+---
 
-#### Key User Stories:
-- As a scheduler, I want to define rules for short days, day-off positioning, and leave prioritization.
-- As a system, I must enforce weekend-off rotations for full-time staff based on their assigned week group.
-- As a system, I must determine the correct 4-week cycle position to enforce weekend-off fairness.
-- As a system, I must enforce maximum weekly hours and track under/over time.
-- As a system, I must ensure fairness in shift allocation (e.g., rotate unpopular shifts evenly).
-- As a system, I must enforce gender-based and skill-based allocation constraints.
+## 🧩 Epic 1.3: Staff Profile Management
+🎯 **Goal:** Allow the editing of staff information after registration.
 
-### 🧩 **Epic 5: Reporting & Analytics**
-**Goal:** Generate insights and reports on staff distribution, workload, and history.
+### Key User Stories:
+- As an admin, I want to edit a staff member’s:
+  - Name
+  - Weekend Group
+  - Shift Period
+  - Gender
+  - Unit Restrictions
+  - **Assigned Unit**
+  - Contract Type
+  - Status (Active/Inactive)
 
-#### Key User Stories:
-- As a manager, I want to generate reports showing hours worked per staff per week.
-- As a manager, I want to see the distribution of shifts across the team (e.g., % of night shifts per staff).
-- As a manager, I want to visualize unit allocation per staff over time.
-- As a manager, I want to track weekend-off assignments across 4-week cycles to ensure fairness.
-- As a system, I want to track compliance with contract hours and alert for deviations.
+- As a system, I must:
+  - Prevent duplicate Staff IDs
+  - Ensure updates do not corrupt related data
 
-### 🧩 **Epic 6: Manual Override & Editing**
-**Goal:** Allow human intervention and customization of generated rosters.
+---
 
-#### Key User Stories:
-- As a scheduler, I want to manually adjust the generated roster before finalizing.
-- As a scheduler, I want to override specific allocations in case of emergencies or staff swaps.
-- As a system, I must recalculate impacts (e.g., hours, fairness, etc.) if overrides happen.
+## 🧩 Epic 1.4: Staff Deletion
+🎯 **Goal:** Safely remove staff members from the system when no longer needed.
 
-### 🧩 **Epic 7: Notifications & Audit Trail**
-**Goal:** Track changes and alert stakeholders when needed.
+### Key User Stories:
+- As an admin, I want to delete staff records
 
-#### Key User Stories:
-- As a system, I must log all changes made to a roster or staff record.
-- As a scheduler, I want to notify staff of their assigned shifts.
-- As a system, I must alert managers when leave exceeds available balance or causes understaffing.
+- As a system, I must:
+  - Prevent deletion if the staff is linked to critical data
+  - Prompt the admin with a warning before deleting
+
+---
+
+
+
 
