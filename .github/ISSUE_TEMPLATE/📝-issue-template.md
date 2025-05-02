@@ -8,42 +8,37 @@ assignees: ''
 
 ---
 
-📚 Epic:
+📚 **Epic:**
+
 Reference the epic (e.g., "Epic 1: Staff Roster Generation").
 
-💬 Description:
+💬 **Description:**
+
 Brief overview of what the task involves.
 
-Example:
+**Example:**
 
 Automatically generate weekly rosters based on shift patterns.
 
-Consider part-time and full-time staff schedules, holidays, and leave requests.
 
-✅ Acceptance Criteria:
+✅ **Acceptance Criteria:**
+
 What defines completion for this task?
 
-Example:
+**Example:**
 
 Weekly roster is generated without errors.
 
-Full-time staff have one short day per week.
 
-Leave requests are accounted for.
+🛠️ **Tasks:**
 
-🛠️ Tasks:
 Breakdown of key steps (optional if not needed).
 
-Example:
+**Example:**
 
 Implement shift allocation logic.
 
-Integrate leave management.
 
-Test weekly roster generation.
+⚡ **Priority:**
 
-👤 Assignee:
-Person responsible for the task.
-
-⚡ Priority:
 Mark as High, Medium, Low.
