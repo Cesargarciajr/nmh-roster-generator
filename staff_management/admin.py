@@ -24,7 +24,7 @@ class StaffAdmin(admin.ModelAdmin):
     form = StaffForm  # Use the customized form above
 
     # Fields to display in the staff list view in Django admin
-    list_display = ['staff_name', 'gender', 'get_work_shifts', 'status']
+    list_display = ['staff_id', 'staff_name', 'gender', 'get_work_shifts', 'status']
 
     # Enable search functionality in admin based on these fields
     search_fields = ['staff_name', 'gender', 'status']
