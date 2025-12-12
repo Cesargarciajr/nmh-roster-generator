@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Roster{% endblock %}</title>
+
+  <!-- Bulma -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" />
+
+  <!-- Optional icons for forms -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    /* ===== Theme helpers to match your index ===== */
+    :root{
+      --card-radius: 12px;
+      --shadow-soft: 0 10px 20px rgba(10,10,10,.08);
+      --shadow-nav: 0 2px 8px rgba(10,10,10,.06);
+      --border-soft: 1px solid rgba(10,10,10,.06);
+    }
+
+    .navbar {
+      box-shadow: var(--shadow-nav);
+      border-bottom: var(--border-soft);
+      backdrop-filter: saturate(110%) blur(2px);
+    }
+    .navbar .navbar-item,
+    .navbar .navbar-link { border-radius: 8px; }
+    .navbar .navbar-item.is-active,
+    .navbar .navbar-item:focus,
+    .navbar .navbar-item:hover {
+      background: rgba(32, 156, 238, .08); /* subtle link-light hover */
+    }
+
+    /* Buttons in nav (Login/Logout) */
+    .nav-btn { border-radius: 10px; }
+
+    /* Page shell */
+    .page-wrap   { padding: 2rem 1rem; }
+    .content-card{
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-soft);
+      background: white;
+    }
+
+    /* Flash messages */
+    .flash { margin-top: 1rem; }
+    .message { border-radius: 10px; }
+
+    /* Reuse your card hover style from index */
+    .card.hoverable { transition: transform .12s ease, box-shadow .12s ease; border-radius: 10px; }
+    .card.hoverable:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(10,10,10,.1); }
+
+    /* Minimal breadcrumb area (optional) */
+    .subbar {
+      background: #f7f9fc; /* soft neutral */
+      border-bottom: var(--border-soft);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar (light, rounded hover) -->
+  <nav class="navbar is-white" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item brand-title" href="{% url 'index' %}">
+        <strong>NMH Roster Management System</strong>
+      </a>
+
+      <!-- Mobile burger -->
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="mainNav">
+        <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="mainNav" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item {% if request.resolver_match.url_name == 'index' %}is-active{% endif %}"
+           href="{% url 'index' %}">Home</a>
+
+        <!-- Manage dropdown mirrors your index palette -->
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link">Manage</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="{% url 'timeoff_requests:requests_all' %}">
+              <span class="tag is-rounded has-background-info-light has-text-info mr-2"> </span> Requests
+            </a>
+            <a class="navbar-item" href="{% url 'staff_management:staff_list' %}">
+              <span class="tag is-rounded has-background-link-light has-text-link mr-2"> </span> Staff
+            </a>
+            <a class="navbar-item" href="{% url 'staff_management:weekend_groups' %}">
+              <span class="tag is-rounded has-background-warning-light has-text-warning-dark mr-2"> </span> Weekend Groups
+            </a>
+            <a class="navbar-item" href="{% url 'staff_management:shiftgroup_list' %}">
+              <span class="tag is-rounded has-background-success-light has-text-success mr-2"> </span> Shift Groups
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="navbar-end">
+        {% if request.user.is_authenticated %}
+          <div class="navbar-item">
+            <span class="icon-text">
+              <span class="icon"><i class="fa-regular fa-user"></i></span>
+              <span>{{ request.user.get_username }}</span>
+            </span>
+          </div>
+          <div class="navbar-item">
+            <a class="button is-light nav-btn" href="{% url 'accounts:logout' %}">Logout</a>
+          </div>
+        {% else %}
+          <div class="navbar-item">
+            <a class="button is-primary is-light nav-btn" href="{% url 'accounts:login' %}">Login</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Optional subbar for page subtitles / actions -->
+  {% block subbar %}
+  {% endblock %}
+
+  <!-- Flash messages -->
+  {% if messages %}
+    <div class="container flash">
+      {% for message in messages %}
+        <article class="message {% if message.tags %}is-{{ message.tags }}{% else %}is-link{% endif %}">
+          <div class="message-body">{{ message }}</div>
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Page content -->
+  <section class="section page-wrap">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="content has-text-centered">
+      <p><small>&copy; {{ now|default:None|date:"Y" }} NMH • Roster Management System</small></p>
+    </div>
+  </footer>
+
+  <!-- Burger toggler -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      for (const burger of document.querySelectorAll('.navbar-burger')) {
+        burger.addEventListener('click', () => {
+          const target = document.getElementById(burger.dataset.target || 'mainNav');
+          burger.classList.toggle('is-active');
+          target.classList.toggle('is-active');
+        });
+      }
+    });
+  </script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

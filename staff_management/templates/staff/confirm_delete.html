@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="section">
+  <div class="container">
+    <div class="card" style="border-radius:12px; box-shadow:0 10px 20px rgba(10,10,10,.08);">
+      <div class="card-content has-text-centered">
+
+        <span class="icon is-large has-text-danger">
+          <i class="fas fa-exclamation-triangle fa-2x"></i>
+        </span>
+
+        <h1 class="title is-4 mt-3">{{ title }}</h1>
+        <br>
+        <p class="subtitle is-6 has-text-grey mb-5">
+          Are you sure you want to permanently delete <strong>{{ obj }}</strong>?  
+          This action cannot be undone.
+        </p>
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="buttons is-centered">
+            <button class="button is-danger is-light">Yes, Delete</button>
+            <a class="button is-light" href="{% url 'staff_management:weekend_groups' %}">Cancel</a>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Optional: add Font Awesome for the warning icon -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+{% endblock %}

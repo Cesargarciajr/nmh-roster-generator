@@ -1,0 +1,7 @@
+altgraph
+future
+macholib
+six
+vboxapi==1.0
+
+# If Django isn't installed by the above, install it separately: `pip install django`

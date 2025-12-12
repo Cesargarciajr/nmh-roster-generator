@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Generate Roster{% endblock %}
+
+{% block content %}
+<div class="section">
+  <div class="container">
+    <h1 class="title">Generate Roster</h1>
+
+    <form method="post">
+      {% csrf_token %}
+  {# messages are rendered in base.html; avoid duplicate display here #}
+  {# client-side modal handles confirmation; no server-side inline fallback displayed #}
+      <div class="field">
+        <label class="label">Start date</label>
+        <div class="control">
+          <input class="input" type="date" name="start" value="{{ today }}" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Days</label>
+        <div class="control">
+          <input class="input" type="number" name="days" value="7" min="1" max="31">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Max shifts per staff (week)</label>
+        <div class="control">
+          <input class="input" type="number" name="max_shifts_per_week" value="5" min="1" max="31">
+        </div>
+      </div>
+
+      <div class="field mt-4">
+        <div class="control">
+          <button class="button is-primary" type="submit" id="generateBtn">Generate</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Modal for overwrite confirmation -->
+    <div id="overwriteModal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Confirm overwrite</p>
+          <button class="delete" aria-label="close" id="modalClose"></button>
+        </header>
+        <section class="modal-card-body">
+          <p>The following roster(s) overlap the requested dates and will be removed if you confirm:</p>
+          <ul id="modalRosterList"></ul>
+          <div id="modalIssues" class="mt-4"></div>
+        </section>
+        <footer class="modal-card-foot">
+          <button class="button is-danger" id="modalConfirm">Confirm and overwrite</button>
+          <button class="button" id="modalCancel">Cancel</button>
+        </footer>
+      </div>
+    </div>
+
+    <hr>
+    
+    <div class="box">
+    <h2 class="subtitle">Recently generated</h2>
+
+    <form method="get" class="mb-4">
+      <div class="field is-grouped">
+        <div class="control">
+          <input class="input" type="text" name="roster_id" placeholder="Roster ID" value="{{ filters.roster_id }}">
+        </div>
+        <div class="control">
+          <div class="select">
+            <select name="weekend_group">
+              <option value="">All weekend groups</option>
+              {% for wg in weekend_groups %}
+                <option value="{{ wg.number }}" {% if filters.weekend_group == wg.number|stringformat:"s" %}selected{% endif %}>{{ wg }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="control">
+          <input class="input" type="month" name="month" value="{{ filters.month }}">
+        </div>
+        <div class="control">
+          <input class="input" type="date" name="start_from" value="{{ filters.start_from }}" placeholder="From">
+        </div>
+        <div class="control">
+          <input class="input" type="date" name="start_to" value="{{ filters.start_to }}" placeholder="To">
+        </div>
+        <div class="control">
+          <button class="button" type="submit">Filter</button>
+        </div>
+      </div>
+    </form>
+
+    <table class="table is-fullwidth is-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Weekend group</th>
+          <th>Assignments</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>{{ r.id }}</td>
+            <td>{{ r.start_date|date:"d/m/Y" }}</td>
+            <td>{{ r.end_date|date:"d/m/Y" }}</td>
+            <td>{{ r.weekend_group }}</td>
+            <td>{{ r.assignments }}</td>
+            <td>
+              <a class="button is-small" href="{% url 'rosters:detail' r.id %}">View</a>
+              {% if request.user.is_staff %}
+                <form method="post" action="{% url 'rosters:delete_roster' r.id %}" style="display:inline">
+                  {% csrf_token %}
+                  <button class="button is-small is-danger" type="submit" onclick="return confirm('Delete roster {{ r.id }}? This cannot be undone.')">Delete</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6">No rosters found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    <script>
+    (function(){
+      // find the POST form on the page (the generator form)
+      const form = document.querySelector('form[method="post"]');
+      const btn = document.getElementById('generateBtn');
+      const modal = document.getElementById('overwriteModal');
+      const modalList = document.getElementById('modalRosterList');
+      const modalIssues = document.getElementById('modalIssues');
+      const modalClose = document.getElementById('modalClose');
+      const modalConfirm = document.getElementById('modalConfirm');
+      const modalCancel = document.getElementById('modalCancel');
+
+      function openModal(){ modal.classList.add('is-active'); }
+      function closeModal(){ modal.classList.remove('is-active'); }
+
+      modalClose.addEventListener('click', closeModal);
+      modalCancel.addEventListener('click', closeModal);
+
+      form.addEventListener('submit', function(ev){
+        // intercept and check via AJAX
+        ev.preventDefault();
+        const data = new FormData(form);
+        fetch('{% url "rosters:check_generate" %}', {
+          method: 'POST',
+          headers: { 'X-CSRFToken': data.get('csrfmiddlewaretoken') },
+          body: data
+        }).then(r => r.json()).then(json => {
+          if(json.overlapping && json.overlapping.length){
+            // populate modal list
+            modalList.innerHTML = '';
+            json.overlapping.forEach(function(r){
+              const li = document.createElement('li');
+              li.textContent = r.start_date + ' → ' + r.end_date;
+              modalList.appendChild(li);
+            });
+            // show any issues
+            modalIssues.innerHTML = '';
+            if(json.issues && json.issues.length){
+              const p = document.createElement('p'); p.textContent = 'Detected issues (overbooked or conflicts):';
+              modalIssues.appendChild(p);
+              const ul = document.createElement('ul');
+              json.issues.forEach(function(it){
+                const li = document.createElement('li');
+                li.textContent = it.date + ': ' + it.count + ' approved requests';
+                ul.appendChild(li);
+              });
+              modalIssues.appendChild(ul);
+            }
+            openModal();
+          } else {
+            // no overlap, submit form normally
+            form.submit();
+          }
+        }).catch(err => {
+          console.error(err);
+          // fallback to normal submit
+          form.submit();
+        });
+      });
+
+      modalConfirm.addEventListener('click', function(){
+        // add hidden confirm field and submit
+        let inp = document.createElement('input');
+        inp.type = 'hidden'; inp.name = 'confirm_overwrite'; inp.value = '1';
+        form.appendChild(inp);
+        closeModal();
+        form.submit();
+      });
+    })();
+    </script>
+  {% endblock %}

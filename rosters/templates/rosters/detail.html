@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block title %}Roster {{ roster.start_date }} → {{ roster.end_date }}{% endblock %}
+
+{% block content %}
+<div class="section">
+  <div class="container">
+    <h1 class="title">Roster {{ roster.start_date }} → {{ roster.end_date }}</h1>
+
+  <form method="get" class="mb-4">
+      <div class="field is-grouped">
+        <div class="control">
+          <div class="select">
+            <select name="shift_group">
+              <option value="">All shifts</option>
+              {% for sg in shift_groups %}
+                <option value="{{ sg.id }}" {% if selected_shift == sg.id %}selected{% endif %}>{{ sg.shift_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="control">
+          <button class="button is-info" type="submit">Filter</button>
+        </div>
+      </div>
+    </form>
+
+    <div class="box">
+      <h3 class="subtitle">Shift coverage summary</h3>
+      <table class="table is-fullwidth is-narrow is-hoverable">
+        <thead>
+          <tr>
+            <th>Shift</th>
+            {% for d in date_list %}
+              <th>{{ d|date:"D j" }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for sg, cells in coverage_rows %}
+            <tr>
+              <td>{{ sg.shift_name }}</td>
+              {% for cnt, req, diff, diff_abs in cells %}
+                {% if diff > 0 %}
+                  <td class="has-text-danger">{{ cnt }} <small class="has-text-danger">(−{{ diff }})</small></td>
+                {% elif diff < 0 %}
+                  <td class="has-text-success">{{ cnt }} <small class="has-text-success">(+{{ diff_abs }})</small></td>
+                {% else %}
+                  <td>{{ cnt }}</td>
+                {% endif %}
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="box">
+      <table class="table is-fullwidth is-striped is-narrow">
+        <thead>
+          <tr>
+            <th>Staff</th>
+            {% for d in date_list %}
+              <th>{{ d|date:"D j" }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+
+          {% for staff, cells in rows %}
+            <tr>
+              <td>{{ staff.full_name }}</td>
+
+              {% for date, a, is_holiday, is_leave, is_day_off in cells %}
+                <td>
+
+                  {# PRIORITY 1: Holiday #}
+                  {% if is_holiday %}
+                    <span class="tag is-rounded is-primary is-light is-small">Holiday</span>
+
+                  {# PRIORITY 2: Leave #}
+                  {% elif is_leave %}
+                    <span class="tag is-rounded is-warning is-light is-small">Leave</span>
+
+                  {# PRIORITY 3: Day Off (OVERRIDES ASSIGNMENT) #}
+                  {% elif is_day_off %}
+                    <span class="tag is-rounded is-danger is-light is-small">Day Off</span>
+
+                  {# PRIORITY 4: Assignment #}
+                  {% elif a %}
+                    <div class="assignment-cell"
+                         data-assignment-id="{{ a.pk }}"
+                         data-shift-group-id="{{ a.shift_group.pk }}"
+                         style="cursor: pointer;">
+                      {% with name=a.shift_group.shift_name|lower %}
+                        {% if 'night' in name %}
+                          <div><strong><span class="tag is-rounded has-text-white" style="background:#0b3d91">{{ a.shift_group.shift_name }}</span></strong></div>
+                        {% elif 'evening' in name %}
+                          <div><strong><span class="tag is-rounded has-text-white" style="background:#6f42c1">{{ a.shift_group.shift_name }}</span></strong></div>
+                        {% elif '7:30' in name or '7:30' in a.shift_group.shift_name %}
+                          <div><strong><span class="tag is-rounded has-text-dark" style="background:#ffdd57">{{ a.shift_group.shift_name }}</span></strong></div>
+                        {% elif '8h' in name or '8' in name %}
+                          <div><strong><span class="tag is-rounded has-text-white" style="background:#3298dc">{{ a.shift_group.shift_name }}</span></strong></div>
+                        {% elif '9' in name %}
+                          <div><strong><span class="tag is-rounded has-text-white" style="background:#48c774">{{ a.shift_group.shift_name }}</span></strong></div>
+                        {% else %}
+                          <div><strong><span class="tag is-rounded has-background-info-light has-text-info">{{ a.shift_group.shift_name }}</span></strong></div>
+                        {% endif %}
+                      {% endwith %}
+                    </div>
+
+                  {# PRIORITY 5: Empty #}
+                  {% else %}
+                    <span class="has-text-grey">—</span>
+                  {% endif %}
+
+                </td>
+              {% endfor %}
+            </tr>
+          {% empty %}
+            <tr><td colspan="{{ date_list|length|add:1 }}">No assignments</td></tr>
+          {% endfor %}
+
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- Inline edit modal -->
+<div id="assignment-modal" class="modal">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Reassign</p>
+      <button class="delete" aria-label="close" id="modal-close"></button>
+    </header>
+
+    <section class="modal-card-body">
+      <div class="field">
+        <label class="label">Choose replacement</label>
+        <div class="control">
+          <div class="select is-fullwidth">
+            <select id="replacement-select"></select>
+          </div>
+        </div>
+      </div>
+      <div id="modal-error" class="has-text-danger"></div>
+    </section>
+
+    <footer class="modal-card-foot">
+      <button class="button is-success" id="modal-submit">Save</button>
+      <button class="button" id="modal-cancel">Cancel</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+  const eligibleBySg = {{ eligible_staff_by_sg|safe }};
+
+  let currentAssignmentId = null;
+  let currentShiftGroupId = null;
+
+  function openModal() {
+    document.getElementById('assignment-modal').classList.add('is-active');
+  }
+  function closeModal() {
+    document.getElementById('assignment-modal').classList.remove('is-active');
+    document.getElementById('modal-error').textContent = '';
+  }
+
+  function populateSelect(sgId) {
+    const sel = document.getElementById('replacement-select');
+    sel.innerHTML = '';
+    const list = eligibleBySg[sgId] || [];
+    for (const s of list) {
+      const opt = document.createElement('option');
+      opt.value = s.pk;
+      opt.textContent = s.full_name;
+      sel.appendChild(opt);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.assignment-cell').forEach(el => {
+      el.addEventListener('click', () => {
+        currentAssignmentId = el.dataset.assignmentId;
+        currentShiftGroupId = el.dataset.shiftGroupId;
+        populateSelect(currentShiftGroupId);
+        openModal();
+      });
+    });
+
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    document.getElementById('modal-cancel').addEventListener('click', closeModal);
+
+    document.getElementById('modal-submit').addEventListener('click', async () => {
+      const sel = document.getElementById('replacement-select');
+      const staffId = sel.value;
+      const form = new FormData();
+      form.append('staff_id', staffId);
+
+      const resp = await fetch(`./assignment/${currentAssignmentId}/edit/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        body: form
+      });
+
+      const data = await resp.json();
+      if (resp.ok && data.success) {
+        const cell = document.querySelector(`.assignment-cell[data-assignment-id="${currentAssignmentId}"]`);
+        if (cell) {
+          cell.querySelector('.is-size-7').textContent = data.staff_name;
+        }
+        closeModal();
+      } else {
+        document.getElementById('modal-error').textContent = data.error || 'Update failed';
+      }
+    });
+
+    function getCookie(name) {
+      const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return v ? v.pop() : '';
+    }
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{# Optional pastel header like your index hero #}
+{% block subbar %}
+
+{% endblock %}
+
+{% block content %}
+
+{# Decide pastel header color from `accent` variable (default=link) #}
+{% with header_bg='has-background-link-light' header_text='has-text-link'%}
+  {% if accent == 'info' %}
+    {% with header_bg='has-background-info-light' header_text='has-text-info' %}{% endwith %}
+  {% elif accent == 'warning' %}
+    {% with header_bg='has-background-warning-light' header_text='has-text-warning-dark' %}{% endwith %}
+  {% elif accent == 'success' %}
+    {% with header_bg='has-background-success-light' header_text='has-text-success' %}{% endwith %}
+  {% elif accent == 'primary' %}
+    {% with header_bg='has-background-primary-light' header_text='has-text-primary' %}{% endwith %}
+  {% elif accent == 'danger' %}
+    {% with header_bg='has-background-danger-light' header_text='has-text-danger' %}{% endwith %}
+  {% endif %}
+
+  <div class="form-card">
+    <header class="form-card__header {{ header_bg }}">
+      <div class="form-card__title {{ header_text }}">
+        {{ title }}
+      </div>
+    </header>
+
+    <div class="form-card__body">
+      {% if form.non_field_errors %}
+        <article class="message is-danger">
+          <div class="message-body">
+            {{ form.non_field_errors|join:", " }}
+          </div>
+        </article>
+      {% endif %}
+
+      <form method="post" {% if form.is_multipart %}enctype="multipart/form-data"{% endif %} novalidate>
+        {% csrf_token %}
+
+        <div class="columns is-multiline">
+          {% for field in form %}
+            <div class="column is-6">
+              <div class="field">
+                <label class="label">{{ field.label }}</label>
+                <div class="control">
+                  {{ field }}
+                </div>
+                {% if field.help_text %}
+                  <p class="help">{{ field.help_text }}</p>
+                {% endif %}
+                {% for error in field.errors %}
+                  <p class="help is-danger">{{ error }}</p>
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="field is-grouped mt-3">
+          <div class="control">
+            <button class="button is-primary">Save</button>
+          </div>
+          <div class="control">
+            <a class="button is-light " href="{{ request.META.HTTP_REFERER|default:'/' }}">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+{% endwith %}
+
+<style>
+  /* Card shell to match your index vibe */
+  .form-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(10,10,10,.08);
+    overflow: hidden;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .form-card__header {
+    border-bottom: 1px solid rgba(10,10,10,.06);
+    padding: 14px 20px;
+  }
+  .form-card__title {
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+  .form-card__body {
+    padding: 26px 26px 22px;
+  }
+
+  /* Make raw Django widgets look Bulma-ish automatically */
+  .form-card input[type="text"],
+  .form-card input[type="number"],
+  .form-card input[type="email"],
+  .form-card input[type="date"],
+  .form-card input[type="time"],
+  .form-card input[type="password"],
+  .form-card textarea,
+  .form-card select {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #dbdbdb;
+    padding: .6rem .75rem;
+    box-shadow: inset 0 1px 2px rgba(10,10,10,.02);
+  }
+  .form-card select {
+    height: 2.5rem;
+  }
+</style>
+
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}
+  Weekend Groups
+{% endblock %}
+
+{% block subbar %}
+  <section class="subbar">
+    <div class="container py-4">
+      <nav class="level">
+        <div class="level-left">
+          <div>
+            <h1 class="title is-4 mb-1">Weekend Groups</h1>
+            <br />
+            <p class="subtitle is-6 has-text-grey">Manage 4-week rotation groups (assign Sat+Sun off).</p>
+          </div>
+        </div>
+        <div class="level-right">
+          <a class="button is-primary is-light" href="{% url 'staff_management:weekend_group_add' %}">+ Add Group</a>
+        </div>
+      </nav>
+    </div>
+  </section>
+{% endblock %}
+
+{% block content %}
+  <div class="content-card">
+    <div class="p-4">
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped is-hoverable">
+          <thead>
+            <tr>
+              <th class="has-text-centered">#</th>
+              <th>Name</th>
+              <th class="has-text-right" style="width:150px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for g in items %}
+              <tr>
+                <td class="has-text-centered">
+                  <span class="">{{ g.number }}</span>
+                </td>
+                <td>
+                  <div class="is-flex">
+                    <span class="tag is-rounded has-background-link-light has-text-link">{{ g.name|default:'—' }}</span>
+                  </div>
+                </td>
+                <td class="has-text-right">
+                  <a class="button is-small is-link is-light" href="{% url 'staff_management:weekend_group_edit' g.id %}">Edit</a>
+                  <a class="button is-small is-danger is-light" href="{% url 'staff_management:weekend_group_delete' g.id %}">Delete</a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="3" class="has-text-centered has-text-grey">No groups yet.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .content-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(10, 10, 10, 0.08);
+      overflow: hidden;
+    }
+    .table-container {
+      max-height: 70vh;
+      overflow: auto;
+    }
+    .table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #fff;
+      box-shadow: 0 1px 0 rgba(10, 10, 10, 0.05);
+    }
+  </style>
+{% endblock %}

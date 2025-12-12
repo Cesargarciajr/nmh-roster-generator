@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Staff{% endblock %}
+
+{# Optional pale subbar for page context + quick actions #}
+{% block subbar %}
+<section class="subbar">
+  <div class="container">
+    <nav class="level py-4">
+      <div class="level-left">
+        <div>
+          <h1 class="title is-4 mb-1">Manage Staff</h1>
+          <br>
+          <p class="subtitle is-6 has-text-grey">
+            Add, edit and manage active staff members and weekend groups.
+          </p>
+        </div>
+      </div>
+      <div class="level-right">
+        <div class="buttons">
+          <a class="button is-primary" href="{% url 'staff_management:staff_add' %}">
+            + Add Staff
+          </a>
+        </div>
+      </div>
+    </nav>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+  <div class="p-4">
+
+    <!-- Search / filters row -->
+    <form method="get" class="field has-addons is-justify-content-flex-end mb-4">
+      <div class="control is-expanded">
+        <input class="input" type="text" name="q" value="{{ q }}" placeholder="Search by name or ID…">
+      </div>
+      <div class="control">
+        <button class="button is-link is-light">Search</button>
+      </div>
+    </form>
+
+    <div class="table-container">
+      <table class="table is-fullwidth is-striped is-hoverable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Shift Groups</th>
+            <th>Gender</th>
+            <th>Weekend Group</th>
+            <th class="has-text-centered">Active</th>
+            <th class="has-text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in items %}
+            <tr>
+              <td>
+                <strong>{{ s.full_name }}</strong>
+              </td>
+              <td><span class="tag is-light">{{ s.employee_id }}</span></td>
+              <td>
+                {% for g in s.shift_groups.all %}
+                  <span class="tag is-rounded has-background-info-light has-text-info">{{ g.shift_name }}</span>
+                {% empty %}
+                  <span class="has-text-grey">—</span>
+                {% endfor %}
+              </td>
+              <td>{{ s.get_gender_display }}</td>
+              <td>
+                {% if s.weekend_group %}
+                  <span class="tag is-rounded has-background-warning-light has-text-warning-dark">
+                    {{ s.weekend_group }}
+                  </span>
+                {% else %}
+                  <span class="tag is-light">—</span>
+                {% endif %}
+              </td>
+              <td class="has-text-centered">
+                {% if s.active %}
+                  <span class="tag is-success is-light">Yes</span>
+                {% else %}
+                  <span class="tag is-danger is-light">No</span>
+                {% endif %}
+              </td>
+              <td class="has-text-right">
+                <div class="buttons are-small is-right">
+                  <a class="button is-link is-light" href="{% url 'staff_management:staff_edit' s.id %}">Edit</a>
+                  <a class="button is-danger is-light" href="{% url 'staff_management:staff_delete' s.id %}">Delete</a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="has-text-centered has-text-grey">
+                No staff yet.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj %}
+      <nav class="pagination is-centered mt-4" role="navigation" aria-label="pagination">
+        {% if page_obj.has_previous %}
+          <a class="pagination-previous" href="?page={{ page_obj.previous_page_number }}&q={{ q }}">Previous</a>
+        {% else %}
+          <a class="pagination-previous" disabled>Previous</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <a class="pagination-next" href="?page={{ page_obj.next_page_number }}&q={{ q }}">Next</a>
+        {% else %}
+          <a class="pagination-next" disabled>Next</a>
+        {% endif %}
+        <ul class="pagination-list">
+          <li><span class="pagination-link is-current">{{ page_obj.number }}</span></li>
+        </ul>
+      </nav>
+    {% endif %}
+
+  </div>
+</div>
+
+<style>
+  /* Keep table header sticky on tall lists (nice UX) */
+  .table-container { max-height: 70vh; overflow: auto; }
+  .table thead th {
+    position: sticky; top: 0; z-index: 2;
+    background: #fff;
+    box-shadow: 0 1px 0 rgba(10,10,10,.05);
+  }
+</style>
+
+{% endblock %}

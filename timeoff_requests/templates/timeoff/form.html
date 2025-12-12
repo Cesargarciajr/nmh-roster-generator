@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<section class="section pt-4">
+  <div class="container">
+
+    <div class="card form-card has-background-light">
+      <header class="card-header has-background-link-light">
+        <p class="card-header-title has-text-link">
+          {{ title }}
+        </p>
+      </header>
+
+      <div class="card-content">
+
+        {% if form.non_field_errors %}
+          <article class="message is-danger mb-4">
+            <div class="message-body">{{ form.non_field_errors }}</div>
+          </article>
+        {% endif %}
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {# Staff field is rendered in the main loop below; remove the separate staff_text input to avoid duplication #}
+
+          {# Main fields laid out like the index cards: light, simple, breathable #}
+          <div class="columns is-multiline">
+            {% for field in form %}
+              {% if field.name != 'staff_text' %}
+                <div class="column is-6">
+                  <div class="field">
+                    <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    <div class="control">
+                      {# ensure Bulma inputs — keeps style consistent with index #}
+                      {% if field.field.widget.input_type == "textarea" %}
+                        {{ field }}
+                      {% elif field.field.widget.input_type %}
+                        {{ field }}
+                      {% else %}
+                        {{ field }}
+                      {% endif %}
+                    </div>
+                    {% if field.errors %}
+                      <p class="help is-danger">{{ field.errors|join:", " }}</p>
+                    {% elif field.help_text %}
+                      <p class="help">{{ field.help_text }}</p>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <div class="is-flex is-justify-content-flex-end mt-2">
+            <div class="buttons">
+              <button class="button is-link">
+                <span class="icon">💾</span><span>Save</span>
+              </button>
+              <a class="button is-light" href="{{ request.META.HTTP_REFERER|default:'/' }}">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .form-card {
+    border-radius: 12px;
+    box-shadow: 0 8px 18px rgba(10,10,10,.06);
+  }
+  .card-header {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+  .card-content .field { margin-bottom: 1rem; }
+  /* match the index’s soft look */
+  .card.form-card .input, 
+  .card.form-card .textarea, 
+  .card.form-card select {
+    background: #fff;
+    border-color: rgba(10,10,10,.08);
+  }
+  .card.form-card .input:focus, 
+  .card.form-card .textarea:focus {
+    border-color: #3273dc22; /* subtle link tint */
+    box-shadow: 0 0 0 0.125em rgba(50, 115, 220, .12);
+  }
+</style>
+{% endblock %}

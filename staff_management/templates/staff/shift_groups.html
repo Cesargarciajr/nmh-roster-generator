@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Shift Groups{% endblock %}
+
+{% block subbar %}
+<section class="subbar">
+  <div class="container py-4">
+    <nav class="level">
+      <div class="level-left">
+        <div>
+          <h1 class="title is-4 mb-1">Shift Groups</h1>
+          <p class="subtitle is-6 has-text-grey">
+            Create and maintain your Morning / Evening / Night (or custom) groups.
+          </p>
+        </div>
+      </div>
+      <div class="level-right">
+        <a class="button is-primary is-light" href="{% url 'staff_management:shiftgroup_add' %}">
+          + Add Shift Group
+        </a>
+      </div>
+    </nav>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+  <div class="p-4">
+
+    <!-- Top actions / (optional) quick filter -->
+    <div class="level mb-3">
+      <div class="level-left">
+        <form method="get" class="field has-addons">
+          <div class="control">
+            <div class="select is-light">
+              <select name="active">
+                <option value="" {% if request.GET.active == None or request.GET.active == "" %}selected{% endif %}>All</option>
+                <option value="1" {% if request.GET.active == "1" %}selected{% endif %}>Active</option>
+                <option value="0" {% if request.GET.active == "0" %}selected{% endif %}>Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="control">
+            <button class="button is-link is-light">Filter</button>
+          </div>
+        </form>
+      </div>
+      <div class="level-right">
+        <a class="button is-primary" href="{% url 'staff_management:shiftgroup_add' %}">+ Add Shift Group</a>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="table is-fullwidth is-striped is-hoverable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th class="has-text-centered">Active</th>
+            <th>Description</th>
+            <th class="has-text-right" style="width: 210px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for g in items %}
+            <tr>
+              <td>
+                <span class="" style="margin-right:.5rem;">
+                  {{ g.shift_name|default:"(Unnamed)" }}
+                </span>
+              </td>
+              <td class="has-text-centered">
+                {% if g.is_active %}
+                  <span class="tag is-success is-light">Yes</span>
+                {% else %}
+                  <span class="tag is-danger is-light">No</span>
+                {% endif %}
+              </td>
+              <td class="has-text-grey">
+                {{ g.description|default:"—" }}
+              </td>
+              <td class="has-text-right">
+                <div class="buttons are-small is-right">
+                  <a class="button is-link is-light" href="{% url 'staff_management:shiftgroup_edit' g.id %}">Edit</a>
+                  <a class="button is-danger is-light" href="{% url 'staff_management:shiftgroup_delete' g.id %}">Delete</a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4" class="has-text-centered has-text-grey">
+                No shift groups yet.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .content-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(10,10,10,.08);
+    overflow: hidden;
+  }
+  .table-container { max-height: 70vh; overflow: auto; }
+  .table thead th {
+    position: sticky; top: 0; z-index: 2;
+    background: #fff;
+    box-shadow: 0 1px 0 rgba(10,10,10,.05);
+  }
+</style>
+
+{% endblock %}

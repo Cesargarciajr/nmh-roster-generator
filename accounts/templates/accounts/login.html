@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+<section class="section">
+  <div class="columns is-centered">
+    <div class="column is-4-desktop is-6-tablet">
+
+      <div class="card login-card" style="border-radius:14px; overflow:hidden;">
+        <header class="card-header has-background-link-light">
+          <p class="card-header-title is-centered has-text-link-dark">
+            <span class="icon mr-2"><i class="fa-solid fa-lock"></i></span>
+            Welcome Back
+          </p>
+        </header>
+
+        <div class="card-content">
+          {% if form.non_field_errors %}
+            <article class="message is-danger">
+              <div class="message-body">
+                {{ form.non_field_errors|join:", " }}
+              </div>
+            </article>
+          {% endif %}
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="field">
+              <label class="label">Username</label>
+              <div class="control has-icons-left">
+                {{ form.username }}
+                <span class="icon is-small is-left">
+                  <i class="fa-solid fa-user"></i>
+                </span>
+              </div>
+              {% if form.username.errors %}
+                <p class="help is-danger">{{ form.username.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+            <div class="field">
+              <label class="label">Password</label>
+              <div class="control has-icons-left">
+                {{ form.password }}
+                <span class="icon is-small is-left">
+                  <i class="fa-solid fa-lock"></i>
+                </span>
+              </div>
+              {% if form.password.errors %}
+                <p class="help is-danger">{{ form.password.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+            <div class="field mt-4">
+              <button class="button is-primary is-medium is-fullwidth"
+                      style="border-radius:10px;">
+                Login
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <footer class="card-footer has-background-light">
+          <a class="card-footer-item has-text-link" href="#">Forgot password?</a>
+        </footer>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+  /* soft, elegant touches to match your menu */
+  .login-card {
+    box-shadow: 0 10px 24px rgba(10,10,10,.08);
+    backdrop-filter: saturate(110%) blur(1px);
+  }
+  .card-header { border-bottom: 1px solid rgba(10,10,10,.06); }
+  .message { border-radius: 10px; }
+  .input.is-medium { border-radius: 10px; }
+</style>
+{% endblock %}

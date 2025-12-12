@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<section class="hero is-light">
+  <div class="hero-body">
+    <p class="title">Main Menu</p>
+    <p class="subtitle">Quick access to management, actions, and insights</p>
+  </div>
+</section>
+
+<div class="section pt-4">
+  <div class="container">
+
+    <!-- Manage -->
+    <div class="columns is-multiline">
+      <div class="column is-12">
+        <h2 class="title is-5 mb-3">Manage</h2>
+      </div>
+
+      <div class="column is-3">
+        <a href="{% url 'staff_management:staff_list' %}">
+          <div class="card hoverable has-background-link-light">
+            <div class="card-content">
+              <p class="title is-6 has-text-link mb-1">Staff</p>
+              <br>
+              <p class="subtitle is-7 has-text-grey">Add, edit, deactivate staff</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="column is-3">
+        <a href="{% url 'timeoff_requests:requests_all' %}">
+          <div class="card hoverable has-background-info-light">
+            <div class="card-content">
+              <p class="title is-6 has-text-info mb-1">Requests</p>
+              <br>
+              <p class="subtitle is-7 has-text-grey">Holidays, leaves, day-off requests</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="column is-3">
+        <a href="{% url 'staff_management:weekend_groups' %}">
+          <div class="card hoverable has-background-warning-light">
+            <div class="card-content">
+              <p class="title is-6 has-text-warning-dark mb-1">Weekend Groups</p>
+              <br>
+              <p class="subtitle is-7 has-text-grey">Week 1–4 off rotation</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="column is-3">
+        <a href="{% url 'staff_management:shiftgroup_list' %}">
+          <div class="card hoverable has-background-success-light">
+            <div class="card-content">
+              <p class="title is-6 has-text-success mb-1">Shift Groups</p>
+              <br>
+              <p class="subtitle is-7 has-text-grey">Morning / Evening / Night templates</p>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="columns is-multiline mt-2">
+      <div class="column is-12">
+        <h2 class="title is-5 mb-3">Actions</h2>
+      </div>
+
+      <div class="column is-3">
+        <a href="{% url 'rosters:generate' %}">
+          <div class="card hoverable has-background-primary-light">
+            <div class="card-content">
+              <p class="title is-6 has-text-primary mb-1">Generate Roster</p>
+              <br>
+              <p class="subtitle is-7 has-text-grey">Build weekly schedule</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="column is-3">
+        <a href="#">
+          <div class="card hoverable has-background-danger-light">
+            <div class="card-content">
+              <p class="title is-6 has-text-danger mb-1">Generate Allocation</p>
+              <br>
+              <p class="subtitle is-7 has-text-grey">Place staff into units</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="column is-3">
+        <a href="#">
+          <div class="card hoverable has-background-link-light">
+            <div class="card-content">
+              <p class="title is-6 has-text-link mb-1">Reports</p>
+              <br>
+              <p class="subtitle is-7 has-text-grey">Download PDF/Spreadsheet</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="column is-3">
+        <a href="#">
+          <div class="card hoverable has-background-info-light">
+            <div class="card-content">
+              <p class="title is-6 has-text-info mb-1">Stats</p>
+              <br>
+              <p class="subtitle is-7 has-text-grey">Coverage, absences, admin KPIs</p>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .card.hoverable { transition: transform .12s ease, box-shadow .12s ease; border-radius: 10px; }
+  .card.hoverable:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(10,10,10,.1); }
+</style>
+
+{% endblock %}

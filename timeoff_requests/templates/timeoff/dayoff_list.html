@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Day Off Requests{% endblock %}
+{% block content %}
+<div class="level">
+  <div class="level-left">
+    <form method="get" class="level-item">
+      <input class="input" type="text" name="q" value="{{ q }}" placeholder="Search staff name..." />
+      <div class="select ml-2">
+        <select name="status" onchange="this.form.submit()">
+          <option value="">All statuses</option>
+          <option value="PENDING"  {% if status == "PENDING" %}selected{% endif %}>Pending</option>
+          <option value="APPROVED" {% if status == "APPROVED" %}selected{% endif %}>Approved</option>
+          <option value="REJECTED" {% if status == "REJECTED" %}selected{% endif %}>Rejected</option>
+        </select>
+      </div>
+      <button class="button ml-2">Filter</button>
+    </form>
+  </div>
+  <div class="level-right">
+    <a class="button is-primary" href="{% url 'timeoff_requests:dayoff_add' %}">Add Day Off</a>
+  </div>
+</div>
+
+<table class="table is-fullwidth is-striped is-hoverable">
+  <thead>
+    <tr><th>Staff</th><th>Date</th><th>Status</th><th>Comment</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for it in items %}
+    <tr>
+      <td>{{ it.staff.full_name }}</td>
+      <td>{{ it.date }}</td>
+      <td>{{ it.get_status_display }}</td>
+      <td>{{ it.comment|default:"" }}</td>
+      <td class="has-text-right">
+        <a class="button is-small" href="{% url 'timeoff_requests:dayoff_edit' it.id %}">Edit</a>
+        <a class="button is-small is-danger" href="{% url 'timeoff_requests:dayoff_delete' it.id %}">Delete</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">No day-off requests yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

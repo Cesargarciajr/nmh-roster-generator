@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}All Time Off Requests{% endblock %}
+
+{% block subbar %}
+<section class="subbar">
+  <div class="container py-4">
+    <nav class="level">
+      <div class="level-left">
+        <div>
+          <h1 class="title is-4 mb-1">All Time Off Requests</h1>
+          <br>
+          <p class="subtitle is-6 has-text-grey">Filter, review, and approve holidays, leaves, and day-off requests.</p>
+        </div>
+      </div>
+      <div class="level-right">
+        <div class="buttons">
+          <a class="button is-link is-light" href="{% url 'timeoff_requests:holiday_add' %}">+ Holiday</a>
+          <a class="button is-info is-light" href="{% url 'timeoff_requests:leave_add' %}">+ Leave</a>
+          <a class="button is-success is-light" href="{% url 'timeoff_requests:dayoff_add' %}">+ Day Off</a>
+        </div>
+      </div>
+    </nav>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+  <div class="p-5">
+
+    <!-- Filters -->
+    <form method="get" class="box is-shadowless has-background-light p-4 mb-5" style="border-radius: 12px;">
+      <div class="columns is-multiline is-variable is-3">
+        <div class="column is-12-tablet is-3-desktop">
+          <label class="label is-small">Status</label>
+          <div class="select is-fullwidth is-light">
+            <select name="status">
+              <option value="">All</option>
+              <option value="PENDING"  {% if filters.status == "PENDING" %}selected{% endif %}>Pending</option>
+              <option value="APPROVED" {% if filters.status == "APPROVED" %}selected{% endif %}>Approved</option>
+              <option value="REJECTED" {% if filters.status == "REJECTED" %}selected{% endif %}>Rejected</option>
+            </select>
+          </div>
+        </div>
+        <div class="column is-12-tablet is-3-desktop">
+          <label class="label is-small">Staff (name or ID)</label>
+          <input class="input is-light" type="text" name="staff" value="{{ filters.staff }}" placeholder="e.g. Jane / E123">
+        </div>
+        <div class="column is-12-tablet is-3-desktop">
+          <label class="label is-small">Requested By (user)</label>
+          <input class="input is-light" type="text" name="user" value="{{ filters.user }}" placeholder="username">
+        </div>
+        <div class="column is-6-tablet is-1-desktop">
+          <label class="label is-small">From</label>
+          <input class="input is-light" type="date" name="from" value="{{ filters.from }}">
+        </div>
+        <div class="column is-6-tablet is-1-desktop">
+          <label class="label is-small">To</label>
+          <input class="input is-light" type="date" name="to" value="{{ filters.to }}">
+        </div>
+        <div class="column is-12-tablet is-1-desktop is-flex is-align-items-end">
+          <button class="button is-link is-light is-fullwidth">Filter</button>
+        </div>
+      </div>
+    </form>
+
+    {% if perms.timeoff_requests.approve_holiday %}
+    <form method="post" action="{% url 'timeoff_requests:holidays_bulk_approve' %}">
+      {% csrf_token %}
+    {% endif %}
+
+      <div class="level mb-3">
+        <div class="level-left">
+          <h2 class="title is-5 mb-0">All Requests</h2>
+        </div>
+        <div class="level-right">
+          {% if perms.timeoff_requests.approve_holiday %}
+            <button class="button is-success is-light" type="submit">
+              Approve selected holidays
+            </button>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped is-hoverable is-narrow">
+          <thead>
+            <tr>
+              {% if perms.timeoff_requests.approve_holiday %}
+                <th style="width: 36px;">
+                  <label class="checkbox">
+                    <input id="bulk-toggle" type="checkbox"
+                      onclick="document.querySelectorAll('input[name=ids]').forEach(c=>{ if(!c.disabled){c.checked=this.checked;} });">
+                  </label>
+                </th>
+              {% endif %}
+              <th>Type</th>
+              <th>Staff</th>
+              <th>Staff ID</th>
+              <th>Requested</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Status</th>
+              <th>Comment</th>
+              <th>User</th>
+              <th class="has-text-right" style="width: 220px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+              <tr>
+                {% if perms.timeoff_requests.approve_holiday %}
+                  <td>
+                    {% if r.type == "Holiday" and r.status == "PENDING" and r.bulk_checkbox %}
+                      <input type="checkbox" name="ids" value="{{ r.id }}">
+                    {% endif %}
+                  </td>
+                {% endif %}
+                <td>
+                  {% if r.type == "Holiday" %}
+                    <span class="tag is-link is-light is-rounded">Holiday</span>
+                  {% elif r.type|slice:":4" == "Leav" %}
+                    <span class="tag is-info is-light is-rounded">Leave</span>
+                  {% elif r.type == "Day Off" %}
+                    <span class="tag is-success is-light is-rounded">Day Off</span>
+                  {% else %}
+                    {{ r.type }}
+                  {% endif %}
+                </td>
+                <td>{{ r.staff_name }}</td>
+                <td><span class="has-text-grey">{{ r.employee_id }}</span></td>
+                <td>{{ r.requested_date|date:"d-m-Y H:i" }}</td>
+                <td>{{ r.start_date|date:"d-m-Y" }}</td>
+                <td>{{ r.end_date|date:"d-m-Y" }}</td>
+                <td>
+                  {% if r.status == "PENDING" %}
+                    <span class="tag is-warning is-light is-rounded">{{ r.status_label }}</span>
+                  {% elif r.status == "APPROVED" %}
+                    <span class="tag is-success is-light is-rounded">{{ r.status_label }}</span>
+                  {% elif r.status == "REJECTED" %}
+                    <span class="tag is-danger is-light is-rounded">{{ r.status_label }}</span>
+                  {% else %}
+                    {{ r.status_label }}
+                  {% endif %}
+                </td>
+                <td class="has-text-grey">{{ r.comment|default:"" }}</td>
+                <td class="has-text-grey">{{ r.user }}</td>
+                <td class="has-text-right">
+                  <div class="buttons are-small is-right" style="justify-content: flex-end;">
+                    <a class="button is-link is-light" href="{% url r.edit_url_name r.id %}">Edit</a>
+                    {% if r.status == "PENDING" %}
+                      {% if r.type == "Holiday" and perms.timeoff_requests.approve_holiday %}
+                        <a class="button is-success is-light" href="{% url r.approve_url_name r.id %}">Approve</a>
+                      {% elif r.type|slice:":4" == "Leav" and perms.timeoff_requests.approve_leave %}
+                        <a class="button is-success is-light" href="{% url r.approve_url_name r.id %}">Approve</a>
+                      {% elif r.type == "Day Off" and perms.timeoff_requests.approve_dayoff %}
+                        <a class="button is-success is-light" href="{% url r.approve_url_name r.id %}">Approve</a>
+                      {% endif %}
+                    {% endif %}
+                    <a class="button is-danger is-light" href="{% url r.delete_url_name r.id %}">Delete</a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="{% if perms.timeoff_requests.approve_holiday %}11{% else %}10{% endif %}" class="has-text-centered has-text-grey">
+                  No requests found.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    {% if perms.timeoff_requests.approve_holiday %}
+    </form>
+    {% endif %}
+
+  </div>
+</div>
+
+<style>
+  .content-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(10,10,10,.08);
+    overflow: hidden;
+  }
+  .table-container { max-height: 70vh; overflow: auto; }
+  .table thead th {
+    position: sticky; top: 0; z-index: 2;
+    background: #fff;
+    box-shadow: 0 1px 0 rgba(10,10,10,.05);
+  }
+</style>
+
+{% endblock %}
